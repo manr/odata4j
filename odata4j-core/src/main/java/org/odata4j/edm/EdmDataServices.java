@@ -191,6 +191,12 @@ public class EdmDataServices {
           for (final EdmProperty ep : ees.getType().getProperties()) {
             if (ep.getName().equals(propName)) {
               return ep;
+            } else if (!ep.getType().isSimple()) {
+              EdmComplexType ect = findEdmComplexType(ep.getType().getFullyQualifiedTypeName());
+              for (final EdmProperty cep : ect.getProperties()) {
+                if (cep.getName().equals(propName))
+                  return cep;
+              }
             }
           }
         }
@@ -394,6 +400,28 @@ public class EdmDataServices {
       //       guessing that in that case, the TempEdmFunctionImport will already
       //       have a EdmRowType instance it built during parsing.
       // first, try to resolve the type name as a simple or complex type
+
+      // Is it a collection ?
+      if (fqTypeName.endsWith(")")){
+        int parenthesisPos = fqTypeName.indexOf("(");
+        if (parenthesisPos > 0){
+          String collectionKindS = fqTypeName.substring(0, parenthesisPos);
+          EdmProperty.CollectionKind collectionKind = null;
+          try {
+            collectionKind = EdmProperty.CollectionKind.valueOf(collectionKindS);
+          } catch (Exception e){
+            // Ignore, means it is probably not a collection
+          }
+
+          if (collectionKind != null){
+            String enclosingTypeName = fqTypeName.substring(parenthesisPos + 1, fqTypeName.length() - 1);
+            // Return recursive call on enclosing type name
+            return EdmCollectionType.newBuilder()
+              .setKind(collectionKind).setCollectionType(resolveType(enclosingTypeName));
+          }
+        }
+      }
+
       EdmType type = EdmType.getSimple(fqTypeName);
       EdmType.Builder<?, ?> builder = null;
       if (type != null) {

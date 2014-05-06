@@ -38,6 +38,8 @@ public interface ODataClient {
 
   ODataClientResponse createEntity(ODataClientRequest request) throws ODataProducerException;
 
+  ODataClientResponse executeBatch(ODataClientBatchRequest request) throws ODataProducerException;
+
   void updateEntity(ODataClientRequest request) throws ODataProducerException;
 
   void deleteEntity(ODataClientRequest request) throws ODataProducerException;

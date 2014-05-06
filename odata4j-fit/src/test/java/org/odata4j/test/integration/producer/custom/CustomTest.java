@@ -308,7 +308,7 @@ public class CustomTest extends CustomBaseTest {
 
     String content = "This MLE was updated by the test testUpdateMLE()";
     int status = rtFacade.putWebResource(endpointUri + "MLEs('foobar')", new ByteArrayInputStream(content.getBytes()), MediaType.TEXT_PLAIN_TYPE, null).getStatusCode();
-    assertEquals(Status.OK.getStatusCode(), status);
+    assertEquals(Status.NO_CONTENT.getStatusCode(), status);
 
     String content2 = rtFacade.getWebResource(endpointUri + "MLEs('foobar')/$value" + "?$format=json").getEntity();
     assertEquals(content, content2);

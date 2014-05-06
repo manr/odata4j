@@ -5,8 +5,8 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.junit.matchers.JUnitMatchers.containsString;
 
-import org.eclipse.jetty.http.security.Constraint;
-import org.eclipse.jetty.http.security.Password;
+import org.eclipse.jetty.util.security.Constraint;
+import org.eclipse.jetty.util.security.Password;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.security.HashLoginService;

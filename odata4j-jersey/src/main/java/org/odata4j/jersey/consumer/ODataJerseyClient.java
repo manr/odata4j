@@ -6,6 +6,8 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -15,11 +17,13 @@ import org.core4j.Enumerable;
 import org.core4j.xml.XDocument;
 import org.core4j.xml.XmlFormat;
 import org.odata4j.consumer.AbstractODataClient;
+import org.odata4j.consumer.ODataClientBatchRequest;
 import org.odata4j.consumer.ODataClientRequest;
 import org.odata4j.consumer.ODataClientResponse;
 import org.odata4j.consumer.ODataConsumer;
 import org.odata4j.consumer.behaviors.OClientBehavior;
 import org.odata4j.consumer.behaviors.OClientBehaviors;
+import org.odata4j.core.Guid;
 import org.odata4j.core.ODataConstants;
 import org.odata4j.core.ODataConstants.Charsets;
 import org.odata4j.core.OError;
@@ -32,6 +36,7 @@ import org.odata4j.format.FormatType;
 import org.odata4j.format.FormatWriter;
 import org.odata4j.format.FormatWriterFactory;
 import org.odata4j.format.SingleLink;
+import org.odata4j.format.SingleLinkRequest;
 import org.odata4j.internal.BOMWorkaroundReader;
 import org.odata4j.stax2.XMLEventReader2;
 import org.odata4j.stax2.util.StaxUtil;
@@ -116,7 +121,7 @@ class ODataJerseyClient extends AbstractODataClient {
       if (request.getPayload() instanceof Entry)
         payloadClass = Entry.class;
       else if (request.getPayload() instanceof SingleLink)
-        payloadClass = SingleLink.class;
+        payloadClass = SingleLinkRequest.class;
       else
         throw new IllegalArgumentException("Unsupported payload: " + request.getPayload());
 
@@ -167,6 +172,144 @@ class ODataJerseyClient extends AbstractODataClient {
     }
     throw exception;
   }
+
+  protected ODataClientResponse doBatchRequest(FormatType reqType, ODataClientBatchRequest request, StatusType... expectedResponseStatus) throws ODataProducerException {
+
+    if (behaviors != null) {
+      for (OClientBehavior behavior : behaviors)
+        request = (ODataClientBatchRequest) behavior.transform(request);
+    }
+
+    WebResource webResource = JerseyClientUtil.resource(client, request.getUrl(), behaviors);
+
+    // set query params
+    for (String qpn : request.getQueryParams().keySet())
+      webResource = webResource.queryParam(qpn, request.getQueryParams().get(qpn));
+
+    WebResource.Builder requestBuilder = webResource.getRequestBuilder();
+
+    String boundaryGuid = Guid.randomGuid().toString();
+
+    // set headers
+    requestBuilder.header("Content-Type", "multipart/mixed; boundary=batch_" + boundaryGuid);
+    requestBuilder.header("Accept", "multipart/mixed");
+    //requestBuilder = requestBuilder.header("Host", "");
+
+    for (String header : request.getHeaders().keySet())
+      requestBuilder.header(header, request.getHeaders().get(header));
+    if (!request.getHeaders().containsKey(ODataConstants.Headers.USER_AGENT))
+      requestBuilder.header(ODataConstants.Headers.USER_AGENT, "odata4j.org");
+
+    if (ODataConsumer.dump.requestHeaders())
+      dumpHeaders(request, webResource, requestBuilder);
+
+    String changesetGuid = Guid.randomGuid().toString();
+
+    List<StringBuilder> changesets = new ArrayList<StringBuilder>();
+
+    if (request.getRequests().size() == 0)
+      throw new IllegalArgumentException("No requests for batch");
+
+    for (ODataClientRequest batchedRequest : request.getRequests())
+    {
+      StringBuilder sb = new StringBuilder();
+
+      sb.append("--changeset_" + changesetGuid + "\n")
+        .append("Content-Type: application/http\n")
+        .append("Content-Transfer-Encoding: binary\n\n")
+        .append(batchedRequest.getMethod())
+        .append(" ")
+        .append(batchedRequest.getUrl())
+        .append(" HTTP/1.1")
+        .append("\n");
+
+      if (!batchedRequest.getMethod().equals("DELETE")) {
+        Class<?> payloadClass;
+        if (batchedRequest.getPayload() instanceof Entry)
+          payloadClass = Entry.class;
+        else if (request.getPayload() instanceof SingleLink)
+          payloadClass = SingleLink.class;
+        else
+          throw new IllegalArgumentException("Unsupported payload: " + batchedRequest.getPayload());
+
+        StringWriter payloadWriter = new StringWriter();
+        FormatWriter<Object> fw = (FormatWriter<Object>)
+            FormatWriterFactory.getFormatWriter(payloadClass, null, this.getFormatType().toString(), null);
+        fw.write(null, payloadWriter, batchedRequest.getPayload());
+
+        String entity = payloadWriter.toString();
+        if (ODataConsumer.dump.requestBody())
+          dump(entity);
+
+        // allow the client to override the default format writer content-type
+        String contentType = batchedRequest.getHeaders().containsKey(ODataConstants.Headers.CONTENT_TYPE)
+            ? batchedRequest.getHeaders().get(ODataConstants.Headers.CONTENT_TYPE)
+            : fw.getContentType();
+
+        if (!contentType.contains("charset"))
+          contentType = contentType + ";charset=" + Charsets.Lower.UTF_8;
+
+        //sb.append("Host:\n");
+        sb.append("Content-Type: " + contentType + "\n");
+        sb.append("Content-Length: " + entity.getBytes().length + "\n");
+        sb.append("\n");
+        sb.append(entity + "\n");
+        sb.append("\n");
+      }
+
+      changesets.add(sb);
+    }
+
+    StringBuilder payload = new StringBuilder();
+
+    for (StringBuilder sb : changesets)
+    {
+      payload.append(sb.toString());
+    }
+
+    payload.append("--changeset_" + changesetGuid + "--\n");
+    payload.append("--batch_" + boundaryGuid + "--");
+
+    //build batch payload
+    StringBuilder entity = new StringBuilder();
+    entity.append("--batch_" + boundaryGuid + "\n");
+    entity.append("Content-Type: multipart/mixed; boundary=changeset_" + changesetGuid + "\n");
+    entity.append("Content-Length: " + payload.length() + "\n\n");
+    entity.append(payload.toString());
+
+    requestBuilder.entity(entity.toString());
+
+    // execute request
+    ClientResponse response = null;
+    try {
+      response = requestBuilder.method(request.getMethod(), ClientResponse.class);
+    } catch (ClientHandlerException e) {
+      Throwables.propagate(e);
+    }
+
+    if (ODataConsumer.dump.responseHeaders())
+      dumpHeaders(response);
+    StatusType status = response.getClientResponseStatus();
+    for (StatusType expStatus : expectedResponseStatus)
+      if (expStatus.getStatusCode() == status.getStatusCode())
+        return new JerseyClientResponse(response);
+
+    // the server responded with an unexpected status
+    RuntimeException exception;
+    String textEntity = response.getEntity(String.class); // input stream can only be consumed once
+    try {
+      // report error as ODataProducerException in case we get a well-formed OData error...
+      MediaType contentType = response.getType();
+      OError error = FormatParserFactory.getParser(OError.class, contentType, null).parse(new StringReader(textEntity));
+      exception = ODataProducerExceptions.create(status, error);
+    } catch (RuntimeException e) {
+      // ... otherwise throw a RuntimeError
+      exception = new RuntimeException(String.format("Expected status %s, found %s. Server response:",
+          Enumerable.create(expectedResponseStatus).join(" or "), status) + "\n" + textEntity, e);
+    }
+    throw exception;
+  }
+
 
   protected XMLEventReader2 toXml(ODataClientResponse response) {
     ClientResponse clientResponse = ((JerseyClientResponse) response).getClientResponse();

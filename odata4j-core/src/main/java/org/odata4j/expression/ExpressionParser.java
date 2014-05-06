@@ -541,6 +541,12 @@ public class ExpressionParser {
       BigDecimal decimalValue = new BigDecimal(tokens.get(0).value + "." + tokens.get(2).value);
       return Expression.decimal(decimalValue);
     }
+    // double literal: 2.0
+    if (tokens.size() == 3 && tokens.get(0).type == TokenType.NUMBER && tokens.get(1).type == TokenType.SYMBOL && tokens.get(1).value.equals(".") && tokens.get(2).type == TokenType.NUMBER) {
+      double doubleValue = Double.parseDouble(tokens.get(0).value + "." + tokens.get(2).value);
+      return Expression.double_(doubleValue);
+    }
+
     // TODO literals: byteLiteral, sbyteliteral
 
     // single token expression

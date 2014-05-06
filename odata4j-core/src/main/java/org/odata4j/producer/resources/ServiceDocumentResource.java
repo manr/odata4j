@@ -1,14 +1,19 @@
 package org.odata4j.producer.resources;
 
 import java.io.StringWriter;
+import java.util.List;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 
@@ -41,6 +46,24 @@ public class ServiceDocumentResource extends BaseResource {
     return Response.ok(w.toString(), fw.getContentType())
         .header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER)
         .build();
+  }
+
+  @POST
+  @Path("{batch: [$]batch}")
+  @Consumes(ODataBatchProvider.MULTIPART_MIXED)
+  @Produces({ODataConstants.APPLICATION_ATOM_XML_CHARSET_UTF8, ODataBatchProvider.MULTIPART_MIXED})
+  public Response processBatch(
+      @Context Providers providers,
+      @Context HttpHeaders headers,
+      @Context Request request,
+      @Context SecurityContext securityContext,
+      @QueryParam("$format") String format,
+      @QueryParam("$callback") String callback,
+      List<BatchBodyPart> bodyParts) throws Exception {
+
+    EntitiesRequestResource resource = new EntitiesRequestResource();
+
+    return resource.processBatch(providers, headers, request, securityContext, format, callback, bodyParts);
   }
 
 }

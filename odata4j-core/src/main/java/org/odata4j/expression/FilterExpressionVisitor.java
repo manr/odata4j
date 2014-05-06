@@ -1,21 +1,53 @@
 package org.odata4j.expression;
 
-import org.odata4j.expression.OrderByExpression.Direction;
 import org.odata4j.internal.InternalUtil;
 import org.odata4j.repack.org.apache.commons.codec.binary.Hex;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+
 public class FilterExpressionVisitor extends PreOrderVisitor {
 
-  // only literals supported, so this suffices for now
-  private String fragment;
+  private final StringBuilder sb = new StringBuilder();
+  private final Deque<ExpressionFragment> stack = new ArrayDeque<ExpressionFragment>();
 
   private void push(String fragment) {
-    this.fragment = fragment;
+    sb.append(fragment);
+  }
+
+  @Override
+  public void beforeDescend() {
+    ExpressionFragment fragment = stack.peek();
+
+    if (fragment == null)
+      return;
+
+    push(fragment.before());
+  }
+
+  @Override
+  public void betweenDescend() {
+    ExpressionFragment fragment = stack.peek();
+
+    if (fragment == null)
+      return;
+
+    push(fragment.between());
+  }
+
+  @Override
+  public void afterDescend() {
+    ExpressionFragment fragment = stack.poll();
+
+    if (fragment == null)
+      return;
+
+    push(fragment.after());
   }
 
   @Override
   public String toString() {
-    return fragment;
+    return sb.toString();
   }
 
   // literals
@@ -90,251 +122,316 @@ public class FilterExpressionVisitor extends PreOrderVisitor {
     push(Integer.toString(expr.getValue().intValue()));
   }
 
-  // non-literals, not supported at the moment
-
-  @Override
-  public void beforeDescend() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void afterDescend() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void betweenDescend() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void visit(String type) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void visit(Direction direction) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void visit(OrderByExpression expr) {
-    throw new UnsupportedOperationException();
-  }
-
   @Override
   public void visit(SByteLiteral expr) {
     push(Byte.toString(expr.getValue()));
   }
 
+  // non-literals
+
+  @Override
+  public void visit(String type) {
+    push("'" + type + "'");
+  }
+
+  @Override
+  public void visit(OrderByExpression.Direction direction) {
+    push(direction == OrderByExpression.Direction.ASCENDING ? "asc" : "desc");
+  }
+
+  @Override
+  public void visit(OrderByExpression expr) {
+    stack.push(ORDERBY_EXPRESSION_FRAGMENT);
+  }
+
   @Override
   public void visit(AddExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(ADD_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(AndExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(AND_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(CastExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(CAST_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(ConcatMethodCallExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(CONCAT_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(DivExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(DIV_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(EndsWithMethodCallExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(ENDS_WITH_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(EntitySimpleProperty expr) {
-    throw new UnsupportedOperationException();
+    push(String.format("%s", expr.getPropertyName()));
   }
 
   @Override
   public void visit(EqExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(EQ_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(GeExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(GE_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(GtExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(GT_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(IndexOfMethodCallExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(INDEX_OF_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(IsofExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(ISOF_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(LeExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(LE_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(LengthMethodCallExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(LENGTH_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(LtExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(LT_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(ModExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(MOD_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(MulExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(MUL_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(NeExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(NE_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(NegateExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(NEGATE_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(NotExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(NOT_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(OrExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(OR_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(ParenExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(PAREN_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(BoolParenExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(BOOL_PAREN_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(ReplaceMethodCallExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(REPLACE_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(StartsWithMethodCallExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(STARTS_WITH_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(SubExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(SUB_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(SubstringMethodCallExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(SUBSTRING_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(SubstringOfMethodCallExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(SUBSTRINGOF_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(ToLowerMethodCallExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(TOLOWER_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(ToUpperMethodCallExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(TOUPPER_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(TrimMethodCallExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(TRIM_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(YearMethodCallExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(YEAR_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(MonthMethodCallExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(MONTH_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(DayMethodCallExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(DAY_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(HourMethodCallExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(HOUR_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(MinuteMethodCallExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(MINUTE_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(SecondMethodCallExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(SECOND_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(RoundMethodCallExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(ROUND_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(FloorMethodCallExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(FLOOR_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(CeilingMethodCallExpression expr) {
-    throw new UnsupportedOperationException();
+    stack.push(CEILING_EXPRESSION_FRAGMENT);
   }
 
   @Override
   public void visit(AggregateAnyFunction expr) {
-    throw new UnsupportedOperationException();
+    if (null != expr.getVariable()) {
+      stack.push(new ExpressionFragment(String.format("/any(%s:", expr.getVariable()), "", ")"));
+    } else {
+      push("/any()");
+    }
   }
 
   @Override
   public void visit(AggregateAllFunction expr) {
-    throw new UnsupportedOperationException();
+    if (null != expr.getVariable()) {
+      stack.push(new ExpressionFragment(String.format("/all(%s:", expr.getVariable()), "", ")"));
+    }
+    else {
+      push("/all()");
+    }
   }
+
+  private static final class ExpressionFragment {
+    private final String beforeFragment;
+    private final String betweenFragment;
+    private final String afterFragment;
+
+    private ExpressionFragment(String beforeFragment, String afterFragment) {
+      this.beforeFragment  = beforeFragment;
+      this.betweenFragment = "";
+      this.afterFragment   = afterFragment;
+    }
+
+    private ExpressionFragment(String beforeFragment, String betweenFragment, String afterFragment) {
+      this.beforeFragment  = beforeFragment;
+      this.betweenFragment = betweenFragment;
+      this.afterFragment   = afterFragment;
+    }
+
+    public String before() {
+      return beforeFragment;
+    }
+
+    public String between() {
+      return betweenFragment;
+    }
+
+    public String after() {
+      return afterFragment;
+    }
+  }
+
+  private static final ExpressionFragment ADD_EXPRESSION_FRAGMENT = new ExpressionFragment("", " add ", "");
+  private static final ExpressionFragment AND_EXPRESSION_FRAGMENT = new ExpressionFragment("", " and ", "");
+  private static final ExpressionFragment CAST_EXPRESSION_FRAGMENT = new ExpressionFragment("cast(", ",", ")");
+  private static final ExpressionFragment CONCAT_EXPRESSION_FRAGMENT = new ExpressionFragment("concat(", ",", ")");
+  private static final ExpressionFragment DIV_EXPRESSION_FRAGMENT = new ExpressionFragment("", " div ", "");
+  private static final ExpressionFragment ENDS_WITH_EXPRESSION_FRAGMENT = new ExpressionFragment("endswith(", ",", ")");
+  private static final ExpressionFragment EQ_EXPRESSION_FRAGMENT = new ExpressionFragment("", " eq ", "");
+  private static final ExpressionFragment GE_EXPRESSION_FRAGMENT = new ExpressionFragment("", " ge ", "");
+  private static final ExpressionFragment GT_EXPRESSION_FRAGMENT = new ExpressionFragment("", " gt ", "");
+  private static final ExpressionFragment INDEX_OF_EXPRESSION_FRAGMENT = new ExpressionFragment("indexof(", ",", ")");
+  private static final ExpressionFragment ISOF_EXPRESSION_FRAGMENT = new ExpressionFragment("isof(", ",", ")");
+  private static final ExpressionFragment LE_EXPRESSION_FRAGMENT = new ExpressionFragment("", " le ", "");
+  private static final ExpressionFragment LENGTH_EXPRESSION_FRAGMENT = new ExpressionFragment("length(", ")");
+  private static final ExpressionFragment LT_EXPRESSION_FRAGMENT = new ExpressionFragment("", " lt ", "");
+  private static final ExpressionFragment MOD_EXPRESSION_FRAGMENT = new ExpressionFragment("", " mod ", "");
+  private static final ExpressionFragment MUL_EXPRESSION_FRAGMENT = new ExpressionFragment("", " mul ", "");
+  private static final ExpressionFragment NE_EXPRESSION_FRAGMENT = new ExpressionFragment("", " ne ", "");
+  private static final ExpressionFragment NEGATE_EXPRESSION_FRAGMENT = new ExpressionFragment("-", "");
+  private static final ExpressionFragment NOT_EXPRESSION_FRAGMENT = new ExpressionFragment("not ", "");
+  private static final ExpressionFragment OR_EXPRESSION_FRAGMENT = new ExpressionFragment("", " or ", "");
+  private static final ExpressionFragment PAREN_EXPRESSION_FRAGMENT = new ExpressionFragment("(", ")");
+  private static final ExpressionFragment BOOL_PAREN_EXPRESSION_FRAGMENT = new ExpressionFragment("(", ")");
+  private static final ExpressionFragment REPLACE_EXPRESSION_FRAGMENT = new ExpressionFragment("replace(", ",", ")");
+  private static final ExpressionFragment STARTS_WITH_EXPRESSION_FRAGMENT = new ExpressionFragment("startswith(", ",", ")");
+  private static final ExpressionFragment SUB_EXPRESSION_FRAGMENT = new ExpressionFragment("", " sub ", "");
+  private static final ExpressionFragment SUBSTRING_EXPRESSION_FRAGMENT = new ExpressionFragment("substring(", ",", ")");
+  private static final ExpressionFragment SUBSTRINGOF_EXPRESSION_FRAGMENT = new ExpressionFragment("substringof(", ",", ")");
+  private static final ExpressionFragment TOLOWER_EXPRESSION_FRAGMENT = new ExpressionFragment("tolower(", ")");
+  private static final ExpressionFragment TOUPPER_EXPRESSION_FRAGMENT = new ExpressionFragment("toupper(", ")");
+  private static final ExpressionFragment TRIM_EXPRESSION_FRAGMENT = new ExpressionFragment("trim(", ")");
+  private static final ExpressionFragment YEAR_EXPRESSION_FRAGMENT = new ExpressionFragment("year(", ")");
+  private static final ExpressionFragment MONTH_EXPRESSION_FRAGMENT = new ExpressionFragment("month(", ")");
+  private static final ExpressionFragment DAY_EXPRESSION_FRAGMENT = new ExpressionFragment("day(", ")");
+  private static final ExpressionFragment HOUR_EXPRESSION_FRAGMENT = new ExpressionFragment("hour(", ")");
+  private static final ExpressionFragment MINUTE_EXPRESSION_FRAGMENT = new ExpressionFragment("minute(", ")");
+  private static final ExpressionFragment SECOND_EXPRESSION_FRAGMENT = new ExpressionFragment("second(", ")");
+  private static final ExpressionFragment ROUND_EXPRESSION_FRAGMENT = new ExpressionFragment("round(", ")");
+  private static final ExpressionFragment FLOOR_EXPRESSION_FRAGMENT = new ExpressionFragment("floor(", ")");
+  private static final ExpressionFragment CEILING_EXPRESSION_FRAGMENT = new ExpressionFragment("ceiling(", ")");
+  private static final ExpressionFragment ORDERBY_EXPRESSION_FRAGMENT = new ExpressionFragment("", " ", "");
 
 }

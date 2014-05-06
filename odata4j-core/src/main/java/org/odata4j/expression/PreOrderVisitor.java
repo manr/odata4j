@@ -356,9 +356,9 @@ public abstract class PreOrderVisitor implements ExpressionVisitor {
   }
 
   public void visitNode(AggregateBoolFunction obj) {
+    visitNode(obj.getSource());
     obj.visitThis(this);
     beforeDescend();
-    visitNode(obj.getSource());
     betweenDescend();
     if (obj.getPredicate() != null) {
       visitNode(obj.getPredicate());

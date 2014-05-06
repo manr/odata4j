@@ -14,10 +14,12 @@
 
   <properties>
     <odata4j.cxfbundle>odata4j-${project.version}-cxfbundle</odata4j.cxfbundle>
+    <odata4j.jerseybundle>odata4j-${project.version}-jerseybundle</odata4j.jerseybundle>
     <odata4j.core>odata4j-${project.version}-core</odata4j.core>
     <odata4j.clientbundle>odata4j-${project.version}-clientbundle</odata4j.clientbundle>
     <odata4j.nojpabundle>odata4j-${project.version}-nojpabundle</odata4j.nojpabundle>
     <odata4j.bundle>odata4j-${project.version}-bundle</odata4j.bundle>
+    <odata4j.source>odata4j-${project.version}-source</odata4j.source>
   </properties>
 
   <build>
@@ -43,6 +45,23 @@
               </descriptors>
             </configuration>
           </execution>
+
+            <!-- jersey bundle: everything with jersey -->
+            <execution>
+                <id>jerseybundle</id>
+                <phase>package</phase>
+                <goals>
+                    <goal>single</goal>
+                </goals>
+                <configuration>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <skipAssembly>false</skipAssembly>
+                    <finalName>${odata4j.jerseybundle}</finalName>
+                    <descriptors>
+                        <descriptor>src/main/assembly/jerseybundle.xml</descriptor>
+                    </descriptors>
+                </configuration>
+            </execution>
 
           <!-- core: odata4j-core only -->
           <execution>
@@ -108,6 +127,23 @@
               <finalName>${odata4j.bundle}</finalName>
               <descriptors>
                 <descriptor>src/main/assembly/bundle.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
+
+          <!-- bundle: sources -->
+          <execution>
+            <id>source</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <appendAssemblyId>false</appendAssemblyId>
+              <skipAssembly>false</skipAssembly>
+              <finalName>${odata4j.source}</finalName>
+              <descriptors>
+                <descriptor>src/main/assembly/sourcebundle.xml</descriptor>
               </descriptors>
             </configuration>
           </execution>

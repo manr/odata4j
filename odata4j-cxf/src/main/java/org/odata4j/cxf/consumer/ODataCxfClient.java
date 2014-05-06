@@ -35,6 +35,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.core4j.Enumerable;
 import org.odata4j.consumer.AbstractODataClient;
+import org.odata4j.consumer.ODataClientBatchRequest;
 import org.odata4j.consumer.ODataClientRequest;
 import org.odata4j.consumer.ODataClientResponse;
 import org.odata4j.consumer.behaviors.OClientBehavior;
@@ -52,6 +53,7 @@ import org.odata4j.format.FormatType;
 import org.odata4j.format.FormatWriter;
 import org.odata4j.format.FormatWriterFactory;
 import org.odata4j.format.SingleLink;
+import org.odata4j.format.SingleLinkRequest;
 import org.odata4j.internal.BOMWorkaroundReader;
 import org.odata4j.stax2.XMLEventReader2;
 import org.odata4j.stax2.util.StaxUtil;
@@ -135,7 +137,7 @@ public class ODataCxfClient extends AbstractODataClient {
       if (request.getPayload() instanceof Entry)
         payloadClass = Entry.class;
       else if (request.getPayload() instanceof SingleLink)
-        payloadClass = SingleLink.class;
+        payloadClass = SingleLinkRequest.class;
       else
         throw new IllegalArgumentException("Unsupported payload: " + request.getPayload());
 
@@ -205,6 +207,11 @@ public class ODataCxfClient extends AbstractODataClient {
           Enumerable.create(expectedResponseStatus).join(" or "), status) + "\n" + textEntity, e);
     }
     throw exception;
+  }
+
+  @Override
+  protected ODataClientResponse doBatchRequest(FormatType reqType, ODataClientBatchRequest request, StatusType... expectedResponseStatus) throws ODataProducerException {
+    throw new UnsupportedOperationException();
   }
 
   protected XMLEventReader2 toXml(ODataClientResponse response) {

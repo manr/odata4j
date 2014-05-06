@@ -71,7 +71,7 @@ public class ErrorTest extends AbstractJettyHttpClientTest {
   @Test
   public void badRequestXmlWithInnerError() throws Exception {
     simulateErrorResponseExtension();
-    ContentExchange exchange = sendRequest(FEED_URL + "(1.2)");
+    ContentExchange exchange = sendRequest(FEED_URL + "(1,2)");
     exchange.waitForDone();
     assertThat(exchange.getStatus(), is(HttpExchange.STATUS_COMPLETED));
     assertThat(exchange.getResponseStatus(), is(HttpStatus.BAD_REQUEST_400));
@@ -83,7 +83,7 @@ public class ErrorTest extends AbstractJettyHttpClientTest {
   @Test
   public void badRequestJsonWithInnerError() throws Exception {
     simulateErrorResponseExtension();
-    ContentExchange exchange = sendRequest(FEED_URL + "(1.2)?$format=json");
+    ContentExchange exchange = sendRequest(FEED_URL + "(1,2)?$format=json");
     exchange.waitForDone();
     assertThat(exchange.getStatus(), is(HttpExchange.STATUS_COMPLETED));
     assertThat(exchange.getResponseStatus(), is(HttpStatus.BAD_REQUEST_400));

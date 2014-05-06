@@ -2,6 +2,7 @@ package org.odata4j.consumer;
 
 import org.core4j.Enumerable;
 import org.odata4j.core.ODataConstants;
+import org.odata4j.core.ODataVersion;
 import org.odata4j.core.OEntityGetRequest;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.edm.EdmDataServices;
@@ -74,10 +75,12 @@ public class ConsumerGetEntityRequest<T> extends AbstractConsumerEntityRequest<T
 
     OEntityKey key = Enumerable.create(getSegments()).last().key;
 
-    // TODO determine the service version from header (and metadata?)
+    ODataVersion version = InternalUtil.getDataServiceVersion(response.getHeaders()
+                                        .getFirst(ODataConstants.Headers.DATA_SERVICE_VERSION));
+
     FormatParser<Feed> parser = FormatParserFactory
         .getParser(Feed.class, getClient().getFormatType(),
-            new Settings(ODataConstants.DATA_SERVICE_VERSION, getMetadata(), entitySet.getName(), key));
+            new Settings(version, getMetadata(), entitySet.getName(), key));
 
     Entry entry = Enumerable.create(parser.parse(getClient().getFeedReader(response)).getEntries())
         .firstOrNull();

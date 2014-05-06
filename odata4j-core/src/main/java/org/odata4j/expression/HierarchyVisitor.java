@@ -345,9 +345,9 @@ public abstract class HierarchyVisitor implements ExpressionVisitor {
     if (delegate != null) {
       delegate.visitNode(obj);
     } else {
+      visitNode(obj.getSource());
       obj.visitThis(this);
       beforeDescend();
-      visitNode(obj.getSource());
       betweenDescend();
       if (obj.getPredicate() != null) {
         visitNode(obj.getPredicate());

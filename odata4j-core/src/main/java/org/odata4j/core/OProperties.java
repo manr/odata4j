@@ -67,6 +67,17 @@ public class OProperties {
   }
 
   /**
+   * Creates a new OData property of the given edm complex type with a null value.
+   *
+   * @param name  the property name
+   * @param type  the property edm complex type
+   * @return a new OData property instance
+   */
+  public static OProperty<?> null_(String name, EdmComplexType type) {
+    return new Impl<Object>(name, type, null);
+  }
+
+  /**
   * Creates a new OData property of the given edm simple type with a null value.
   *
   * @param name  the property name
@@ -74,7 +85,10 @@ public class OProperties {
   * @return a new OData property instance
   */
   public static OProperty<?> null_(String name, String fqSimpleTypeName) {
-    return new Impl<Object>(name, EdmType.getSimple(fqSimpleTypeName), null);
+    if (EdmType.getSimple(fqSimpleTypeName) != null)
+      return new Impl<Object>(name, EdmType.getSimple(fqSimpleTypeName), null);
+    else
+      return new Impl<Object>(name, EdmComplexType.newBuilder().setName(fqSimpleTypeName).build(), null);
   }
 
   /**

@@ -23,8 +23,8 @@ import org.odata4j.internal.InternalUtil;
 public class ConsumerCreateEntityRequest<T> extends AbstractConsumerEntityPayloadRequest implements OCreateRequest<T> {
 
   private final ODataClient client;
-  private OEntity parent;
-  private String navProperty;
+  protected OEntity parent;
+  protected String navProperty;
 
   public ConsumerCreateEntityRequest(ODataClient client, String serviceRootUri, EdmDataServices metadata, String entitySetName) {
     super(entitySetName, serviceRootUri, metadata);

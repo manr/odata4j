@@ -17,6 +17,9 @@ import org.odata4j.format.json.JsonErrorFormatParser;
 import org.odata4j.format.json.JsonFeedFormatParser;
 import org.odata4j.format.json.JsonSimpleObjectFormatParser;
 import org.odata4j.format.json.JsonSingleLinkFormatParser;
+import org.odata4j.format.xml.AtomCollectionFormatParser;
+import org.odata4j.format.xml.AtomComplexFormatParser;
+import org.odata4j.format.xml.AtomEntityFormatParser;
 import org.odata4j.format.xml.AtomEntryFormatParser;
 import org.odata4j.format.xml.AtomErrorFormatParser;
 import org.odata4j.format.xml.AtomFeedFormatParser;
@@ -149,12 +152,12 @@ public class FormatParserFactory {
 
     @Override
     public FormatParser<OComplexObject> getComplexObjectFormatParser(Settings settings) {
-      throw new UnsupportedOperationException("Not supported yet.");
+      return new AtomComplexFormatParser(settings);
     }
 
     @Override
     public FormatParser<OCollection<? extends OObject>> getCollectionFormatParser(Settings settings) {
-      throw new UnsupportedOperationException("Not supported yet.");
+      return new AtomCollectionFormatParser(settings);
     }
 
     @Override
@@ -169,7 +172,7 @@ public class FormatParserFactory {
 
     @Override
     public FormatParser<OEntity> getEntityFormatParser(Settings settings) {
-      throw new UnsupportedOperationException("Not supported yet.");
+      return new AtomEntityFormatParser(settings.metadata, settings.entitySetName, settings.entityKey);
     }
 
   }

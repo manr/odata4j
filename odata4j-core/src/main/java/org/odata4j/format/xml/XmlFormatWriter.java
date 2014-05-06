@@ -305,6 +305,8 @@ public class XmlFormatWriter {
         writer.writeAttribute("src", baseUri + stream.getAtomEntitySource());
         writer.endElement("content");
       }
+    } else if (!isResponse && ees != null && ees.getType() != null ) {
+      hasStream = ees.getType().getHasStream() == null ? false : ees.getType().getHasStream();
     }
 
     if (!hasStream) {

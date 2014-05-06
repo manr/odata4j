@@ -2,6 +2,7 @@ package org.odata4j.producer.resources;
 
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.ws.rs.DELETE;
@@ -53,7 +54,7 @@ public class LinksRequestResource extends BaseResource {
       @Context Providers providers,
       @Context SecurityContext securityContext,
       String payload) {
-    log.info(String.format(
+    log(String.format(
         "createLink(%s,%s,%s,%s)",
         sourceEntity.getEntitySetName(),
         sourceEntity.getEntityKey(),
@@ -73,7 +74,7 @@ public class LinksRequestResource extends BaseResource {
       @Context Providers providers,
       @Context SecurityContext securityContext,
       String payload) {
-    log.info(String.format(
+    log(String.format(
         "updateLink(%s,%s,%s,%s)",
         sourceEntity.getEntitySetName(),
         sourceEntity.getEntityKey(),
@@ -123,7 +124,7 @@ public class LinksRequestResource extends BaseResource {
       @QueryParam("$format") String format,
       @QueryParam("$callback") String callback) {
 
-    log.info(String.format(
+    log(String.format(
         "getLinks(%s,%s,%s,%s)",
         sourceEntity.getEntitySetName(),
         sourceEntity.getEntityKey(),
@@ -156,6 +157,25 @@ public class LinksRequestResource extends BaseResource {
     String entity = sw.toString();
 
     return Response.ok(entity, contentType).header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
+  }
+
+  private static void log(String operation, Object... namedArgs) {
+    if (!log.isLoggable(Level.FINE))
+      return;
+
+    if (namedArgs != null && namedArgs.length > 0) {
+      StringBuilder sb = new StringBuilder(operation).append('(');
+
+      for (int i = 0; i < namedArgs.length; i += 2) {
+        if (i > 0)
+          sb.append(',');
+        sb.append(namedArgs[i]).append('=').append(namedArgs[i + 1]);
+      }
+
+      log.fine(sb.append(')').toString());
+    } else {
+      log.fine(operation);
+    }
   }
 
 }

@@ -10,6 +10,8 @@ import org.core4j.Func1;
 import org.odata4j.core.OEntityKey;
 import org.odata4j.core.OQueryRequest;
 import org.odata4j.edm.EdmDataServices;
+import org.odata4j.expression.CommonExpression;
+import org.odata4j.expression.Expression;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmFunctionImport;
 import org.odata4j.internal.EntitySegment;
@@ -120,6 +122,12 @@ public abstract class AbstractConsumerQueryRequestBase<T> implements OQueryReque
   @Override
   public OQueryRequest<T> filter(String filter) {
     this.filter = filter;
+    return this;
+  }
+
+  @Override
+  public OQueryRequest<T> filter(CommonExpression filterExpression) {
+    this.filter = Expression.asFilterString(filterExpression);
     return this;
   }
 

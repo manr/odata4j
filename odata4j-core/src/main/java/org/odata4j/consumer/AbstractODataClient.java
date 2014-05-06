@@ -78,6 +78,10 @@ public abstract class AbstractODataClient implements ODataClient {
     return doRequest(getFormatType(), request, Status.CREATED);
   }
 
+  public ODataClientResponse executeBatch(ODataClientBatchRequest request) throws ODataProducerException {
+    return doBatchRequest(getFormatType(), request, Status.ACCEPTED);
+  }
+
   public void updateEntity(ODataClientRequest request) throws ODataProducerException {
     doRequest(getFormatType(), request, Status.OK, Status.NO_CONTENT).close();
   }
@@ -117,6 +121,8 @@ public abstract class AbstractODataClient implements ODataClient {
   }
 
   protected abstract ODataClientResponse doRequest(FormatType reqType, ODataClientRequest request, StatusType... expectedResponseStatus) throws ODataProducerException;
+
+  protected abstract ODataClientResponse doBatchRequest(FormatType reqType, ODataClientBatchRequest request, StatusType... expectedResponseStatus) throws ODataProducerException;
 
   protected abstract XMLEventReader2 toXml(ODataClientResponse response);
 

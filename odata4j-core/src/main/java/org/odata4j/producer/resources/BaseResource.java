@@ -34,12 +34,12 @@ import org.odata4j.producer.OMediaLinkExtensions;
 
 public abstract class BaseResource {
 
-  protected OEntity getRequestEntity(HttpHeaders httpHeaders, UriInfo uriInfo, String payload, EdmDataServices metadata, String entitySetName, OEntityKey entityKey) {
+  protected OEntity getRequestEntity(HttpHeaders httpHeaders, MediaType mediaType, UriInfo uriInfo, String payload, EdmDataServices metadata, String entitySetName, OEntityKey entityKey) {
     // TODO validation of MaxDataServiceVersion against DataServiceVersion
     // see spec [ms-odata] section 1.7
 
     ODataVersion version = InternalUtil.getDataServiceVersion(httpHeaders.getRequestHeaders().getFirst(ODataConstants.Headers.DATA_SERVICE_VERSION));
-    return convertFromString(payload, httpHeaders.getMediaType(), version, metadata, entitySetName, entityKey);
+    return convertFromString(payload, mediaType, version, metadata, entitySetName, entityKey);
   }
 
   private static OEntity convertFromString(String requestEntity, MediaType type, ODataVersion version, EdmDataServices metadata, String entitySetName, OEntityKey entityKey) throws NotAcceptableException {

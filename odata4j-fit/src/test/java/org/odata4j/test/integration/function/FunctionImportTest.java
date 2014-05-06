@@ -267,9 +267,6 @@ public class FunctionImportTest extends AbstractRuntimeTest {
 
   protected void testFunctionConsumer(String functionName, EdmType expectedType, int nExpected, Predicate1<OObject> alsoTrue) {
     for (FormatType format : FunctionImportTest.formats) {
-      if (format.equals(FormatType.ATOM)) {
-        continue;
-      } // maybe someday.
       ODataConsumer consumer = rtFacade.createODataConsumer(endpointUri, format, null);
       Enumerable<OObject> objects = consumer.callFunction(functionName).execute();
 
@@ -691,7 +688,7 @@ public class FunctionImportTest extends AbstractRuntimeTest {
       assertEquals(format.toString(), "p1", this.mockProducer.getQueryParameter().get("p1").getName());
       assertEquals(format.toString(), EdmSimpleType.STRING, this.mockProducer.getQueryParameter().get("p1").getType());
       assertEquals(format.toString(), "abc", OSimpleObjects.getValueDisplayString(this.mockProducer.getQueryParameter().get("p1").getValue()));
-      
+
       switch (format) {
       case ATOM:
         assertXpathExists("/d:TestFunctionReturnStringGet", resource);
@@ -943,7 +940,7 @@ public class FunctionImportTest extends AbstractRuntimeTest {
 
     /*
      * because of we don't have batch processing test we will to a sanity batch test here because of function call support
-     * for all http methods did affect batch implementation (s. EntietiesRequestResource). 
+     * for all http methods did affect batch implementation (s. EntietiesRequestResource).
      */
 
     for (FormatType format : FunctionImportTest.formats) {

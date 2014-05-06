@@ -103,6 +103,8 @@ public class ExpressionTest {
     t(Expression.single(-2.34f), "-2.34F");
     t(Expression.double_(-2d), "-2d");
     t(Expression.double_(-2d), "-2D");
+    t(Expression.double_(2.34d), "2.34");
+    t(Expression.double_(-2.34d), "-2.34");
     t(Expression.double_(-2.34d), "-2.34d");
     t(Expression.double_(-2.34d), "-2.34D");
     t(Expression.double_(-2E+1), "-2e+1");

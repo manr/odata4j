@@ -4,7 +4,9 @@ import javax.ws.rs.core.UriInfo;
 
 import org.odata4j.core.OCollection;
 import org.odata4j.core.OEntity;
+import org.odata4j.core.OSimpleObject;
 import org.odata4j.edm.EdmEntityType;
+import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.edm.EdmType;
 import org.odata4j.producer.CollectionResponse;
 
@@ -34,6 +36,8 @@ public class JsonCollectionFormatWriter extends JsonFormatWriter<CollectionRespo
         if (ctype instanceof EdmEntityType) {
           OEntity entity = (OEntity) o;
           super.writeOEntity(uriInfo, jw, entity, entity.getEntitySet(), true); // its a response.
+        } else if (ctype instanceof EdmSimpleType) {
+          super.writeValue(jw, ctype, ((OSimpleObject<?>) o).getValue());
         } else {
           super.writeValue(jw, ctype, o);
         }

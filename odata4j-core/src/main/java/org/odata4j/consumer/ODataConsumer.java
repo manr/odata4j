@@ -3,6 +3,7 @@ package org.odata4j.consumer;
 import org.core4j.Enumerable;
 import org.odata4j.consumer.behaviors.OClientBehavior;
 import org.odata4j.core.EntitySetInfo;
+import org.odata4j.core.OBatchRequest;
 import org.odata4j.core.OCountRequest;
 import org.odata4j.core.OCreateRequest;
 import org.odata4j.core.OEntity;
@@ -419,4 +420,10 @@ public interface ODataConsumer {
    * @return a new count-request builder
    */
   OCountRequest getEntitiesCount(String entitySetName);
+
+  /**
+   * Creates a batch request.
+   * @return a new batch-request builder
+   */
+  OBatchRequest createBatchRequest();
 }

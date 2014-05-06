@@ -4,7 +4,7 @@ import java.util.Iterator;
 
 import org.core4j.Enumerable;
 import org.odata4j.exceptions.ODataProducerException;
-
+import org.odata4j.expression.CommonExpression;
 /**
  * A consumer-side query-request builder.  Call {@link #execute()} to issue the request.
  *
@@ -57,6 +57,15 @@ public interface OQueryRequest<T> {
    * @see <a href="http://www.odata.org/developers/protocols/uri-conventions#FilterSystemQueryOption">[odata.org] Filter System Query Option ($filter)</a>
    */
   OQueryRequest<T> filter(String filter);
+
+  /**
+   * Sets the filter expression.
+   *
+   * @param filterExpression  the filter expression
+   * @return the query-request builder
+   * @see <a href="http://www.odata.org/developers/protocols/uri-conventions#FilterSystemQueryOption">[odata.org] Filter System Query Option ($filter)</a>
+   */
+  OQueryRequest<T> filter(CommonExpression filterExpression);
 
   /**
    * Sets the selection clauses.

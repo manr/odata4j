@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.ws.rs.DELETE;
@@ -39,7 +40,7 @@ import org.odata4j.producer.ODataContextImpl;
 import org.odata4j.producer.ODataProducer;
 import org.odata4j.producer.OMediaLinkExtension;
 
-@Path("{entitySetName: [^/()]+?}{id: \\([^/()]+?\\)}")
+@Path("{entitySetName: [^/()\\$]+?}{id: \\([^/()]+?\\)}")
 public class EntityRequestResource extends BaseResource {
 
   private static final Logger log = Logger.getLogger(EntityRequestResource.class.getName());
@@ -52,7 +53,7 @@ public class EntityRequestResource extends BaseResource {
       @PathParam("id") String id,
       InputStream payload) throws Exception {
 
-    log.info(String.format("updateEntity(%s,%s)", entitySetName, id));
+    log(String.format("updateEntity(%s,%s)", entitySetName, id));
 
     ODataProducer producer = getODataProducer(providers);
 
@@ -83,7 +84,7 @@ public class EntityRequestResource extends BaseResource {
     producer.updateEntity(odataContext, entitySetName, entity);
 
     // TODO: hmmh..isn't this supposed to be HTTP 204 No Content?
-    return Response.ok().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
+    return Response.noContent().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
   }
 
   /**
@@ -101,7 +102,7 @@ public class EntityRequestResource extends BaseResource {
       String payload,
       ODataContext odataContext) throws Exception {
 
-    log.info(String.format("updateEntity(%s,%s)", entitySetName, id));
+    log(String.format("updateEntity(%s,%s)", entitySetName, id));
 
     ODataProducer producer = getODataProducer(providers);
 
@@ -124,11 +125,11 @@ public class EntityRequestResource extends BaseResource {
       }
     }
 
-    OEntity entity = this.getRequestEntity(httpHeaders, uriInfo, payload, producer.getMetadata(), entitySetName, OEntityKey.parse(id));
+    OEntity entity = this.getRequestEntity(httpHeaders, httpHeaders.getMediaType(), uriInfo, payload, producer.getMetadata(), entitySetName, OEntityKey.parse(id));
     producer.updateEntity(odataContext, entitySetName, entity);
 
     // TODO: hmmh..isn't this supposed to be HTTP 204 No Content?
-    return Response.ok().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
+    return Response.noContent().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
   }
 
   /**
@@ -145,7 +146,7 @@ public class EntityRequestResource extends BaseResource {
     OEntity mle = super.createOrUpdateMediaLinkEntry(httpHeaders, uriInfo, entitySet, producer, payload, key, odataContext);
 
     // TODO: hmmh..isn't this supposed to be HTTP 204 No Content?
-    return Response.ok().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
+    return Response.noContent().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
   }
 
   @POST
@@ -156,7 +157,7 @@ public class EntityRequestResource extends BaseResource {
       @PathParam("id") String id,
       String payload) {
 
-    log.info(String.format("mergeEntity(%s,%s)", entitySetName, id));
+    log(String.format("mergeEntity(%s,%s)", entitySetName, id));
 
     ODataProducer producer = getODataProducer(providers);
 
@@ -165,26 +166,26 @@ public class EntityRequestResource extends BaseResource {
 
     String method = httpHeaders.getRequestHeaders().getFirst(ODataConstants.Headers.X_HTTP_METHOD);
     if ("MERGE".equals(method)) {
-      OEntity entity = this.getRequestEntity(httpHeaders, uriInfo, payload, producer.getMetadata(), entitySetName, entityKey);
+      OEntity entity = this.getRequestEntity(httpHeaders, httpHeaders.getMediaType(), uriInfo, payload, producer.getMetadata(), entitySetName, entityKey);
       producer.mergeEntity(context, entitySetName, entity);
 
       // TODO: hmmh..isn't this supposed to be HTTP 204 No Content?
-      return Response.ok().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
+      return Response.noContent().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
     }
 
     if ("DELETE".equals(method)) {
       producer.deleteEntity(context, entitySetName, entityKey);
 
       // TODO: hmmh..isn't this supposed to be HTTP 204 No Content?
-      return Response.ok().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
+      return Response.noContent().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
     }
 
     if ("PUT".equals(method)) {
-      OEntity entity = this.getRequestEntity(httpHeaders, uriInfo, payload, producer.getMetadata(), entitySetName, OEntityKey.parse(id));
+      OEntity entity = this.getRequestEntity(httpHeaders, httpHeaders.getMediaType(), uriInfo, payload, producer.getMetadata(), entitySetName, OEntityKey.parse(id));
       producer.updateEntity(context, entitySetName, entity);
 
       // TODO: hmmh..isn't this supposed to be HTTP 204 No Content?
-      return Response.ok().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
+      return Response.noContent().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
     }
 
     if (method != null)
@@ -202,7 +203,7 @@ public class EntityRequestResource extends BaseResource {
       @PathParam("entitySetName") String entitySetName,
       @PathParam("id") String id) throws Exception {
 
-    log.info(String.format("deleteEntity(%s,%s)", entitySetName, id));
+    log(String.format("deleteEntity(%s,%s)", entitySetName, id));
 
     ODataProducer producer = getODataProducer(providers);
 
@@ -241,13 +242,13 @@ public class EntityRequestResource extends BaseResource {
       OEntity mle = mediaLinkExtension.getMediaLinkEntryForUpdateOrDelete(odataContext, entitySet, entityKey, httpHeaders);
       mediaLinkExtension.deleteStream(odataContext, mle, null /* QueryInfo, may need to get rid of */);
       // TODO: hmmh..isn't this supposed to be HTTP 204 No Content?
-      return Response.ok().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
+      return Response.noContent().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
     }
 
     producer.deleteEntity(odataContext, entitySetName, entityKey);
 
     // TODO: hmmh..isn't this supposed to be HTTP 204 No Content?
-    return Response.ok().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
+    return Response.noContent().header(ODataConstants.Headers.DATA_SERVICE_VERSION, ODataConstants.DATA_SERVICE_VERSION_HEADER).build();
   }
 
   @GET
@@ -283,7 +284,7 @@ public class EntityRequestResource extends BaseResource {
         OptionsQueryParser.parseExpand(expand),
         OptionsQueryParser.parseSelect(select));
 
-    log.info(String.format(
+    log(String.format(
         "getEntity(%s,%s,%s,%s)",
         entitySetName,
         id,
@@ -331,6 +332,25 @@ public class EntityRequestResource extends BaseResource {
   @Path("{navProp: .+?}{optionalParens: ((\\(\\)))}")
   public PropertyRequestResource getSimpleNavProperty() {
     return new PropertyRequestResource();
+  }
+
+  private static void log(String operation, Object... namedArgs) {
+    if (!log.isLoggable(Level.FINE))
+      return;
+
+    if (namedArgs != null && namedArgs.length > 0) {
+      StringBuilder sb = new StringBuilder(operation).append('(');
+
+      for (int i = 0; i < namedArgs.length; i += 2) {
+        if (i > 0)
+          sb.append(',');
+        sb.append(namedArgs[i]).append('=').append(namedArgs[i + 1]);
+      }
+
+      log.fine(sb.append(')').toString());
+    } else {
+      log.fine(operation);
+    }
   }
 
 }

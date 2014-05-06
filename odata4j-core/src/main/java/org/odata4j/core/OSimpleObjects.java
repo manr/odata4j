@@ -87,7 +87,13 @@ public class OSimpleObjects {
     if (EdmSimpleType.GUID.equals(type))
       return (OSimpleObject<V>) Impl.create(EdmSimpleType.GUID, Guid.fromString(value));
     if (EdmSimpleType.BOOLEAN.equals(type))
-      return (OSimpleObject<V>) Impl.create(EdmSimpleType.BOOLEAN, Boole.fromString(value).toBoolean());
+    {
+      try {
+        return (OSimpleObject<V>) Impl.create(EdmSimpleType.BOOLEAN, Boole.fromString(value).toBoolean());
+      } catch (Exception e) {
+        return (OSimpleObject<V>) Impl.create(EdmSimpleType.BOOLEAN, Boolean.TRUE);
+      }
+    }
     if (EdmSimpleType.BYTE.equals(type))
       return (OSimpleObject<V>) Impl.create(EdmSimpleType.BYTE, UnsignedByte.parseUnsignedByte(value));
     if (EdmSimpleType.SBYTE.equals(type))
@@ -103,11 +109,15 @@ public class OSimpleObjects {
     if (EdmSimpleType.DOUBLE.equals(type))
       return (OSimpleObject<V>) Impl.create(EdmSimpleType.DOUBLE, Double.parseDouble(value));
     if (EdmSimpleType.DECIMAL.equals(type))
-      return (OSimpleObject<V>) Impl.create(EdmSimpleType.DECIMAL, new BigDecimal(value));
+      return (OSimpleObject<V>) Impl.create(EdmSimpleType.DECIMAL, new BigDecimal(value.trim()));
     if (EdmSimpleType.BINARY.equals(type))
       return (OSimpleObject<V>) Impl.create(EdmSimpleType.BINARY, new Base64().decode(value));
-    if (EdmSimpleType.DATETIME.equals(type))
-      return (OSimpleObject<V>) Impl.create(EdmSimpleType.DATETIME, InternalUtil.parseDateTimeFromXml(value));
+    if (EdmSimpleType.DATETIME.equals(type)) {
+      if ("0000-00-00T00:00:00".equals(value))
+        return (OSimpleObject<V>) Impl.create(type, null);
+      else
+        return (OSimpleObject<V>) Impl.create(EdmSimpleType.DATETIME, InternalUtil.parseDateTimeFromXml(value));
+    }
     if (EdmSimpleType.DATETIMEOFFSET.equals(type))
       return (OSimpleObject<V>) Impl.create(EdmSimpleType.DATETIMEOFFSET, InternalUtil.parseDateTimeOffsetFromXml(value));
     if (EdmSimpleType.TIME.equals(type))

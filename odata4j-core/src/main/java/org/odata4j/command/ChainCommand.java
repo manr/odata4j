@@ -54,6 +54,7 @@ public class ChainCommand<TContext extends CommandContext> implements Command<TC
         }
       } catch (Exception e) {
         executionException = e;
+        break;
       }
     }
 

@@ -21,14 +21,16 @@ public class EdmFunctionImport extends EdmItem {
   private final EdmType returnType;
   private final String httpMethod;
   private final ImmutableList<EdmFunctionParameter> parameters;
+  private final boolean isCollection;
 
-  private EdmFunctionImport(String name, EdmEntitySet entitySet, EdmType returnType,
+  private EdmFunctionImport(String name, EdmEntitySet entitySet, EdmType returnType, boolean isCollection,
       String httpMethod, ImmutableList<EdmFunctionParameter> parameters, EdmDocumentation doc,
       ImmutableList<EdmAnnotation<?>> annots, ImmutableList<EdmAnnotation<?>> annotElements) {
     super(doc, annots, annotElements);
     this.name = name;
     this.entitySet = entitySet;
     this.returnType = returnType;
+    this.isCollection = isCollection;
     this.httpMethod = httpMethod;
     this.parameters = parameters;
   }
@@ -43,6 +45,10 @@ public class EdmFunctionImport extends EdmItem {
 
   public EdmType getReturnType() {
     return returnType;
+  }
+
+  public boolean isCollection() {
+    return isCollection;
   }
 
   public String getHttpMethod() {
@@ -89,8 +95,8 @@ public class EdmFunctionImport extends EdmItem {
       EdmType returnType =
           this.returnType != null ? this.returnType
               : returnTypeBuilder != null ? returnTypeBuilder.build() : null;
-      return new EdmFunctionImport(name, entitySet == null ? null : entitySet.build(), returnType, httpMethod,
-          ImmutableList.copyOf(parameters), getDocumentation(), ImmutableList.copyOf(getAnnotations()),
+      return new EdmFunctionImport(name, entitySet == null ? null : entitySet.build(), returnType, isCollection,
+          httpMethod, ImmutableList.copyOf(parameters), getDocumentation(), ImmutableList.copyOf(getAnnotations()),
           ImmutableList.copyOf(getAnnotationElements()));
     }
 

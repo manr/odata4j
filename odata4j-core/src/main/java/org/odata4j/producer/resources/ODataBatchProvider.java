@@ -115,15 +115,39 @@ public class ODataBatchProvider implements MessageBodyReader<List<BatchBodyPart>
   }
 
   private BatchBodyPart parseBodyPart(BufferedReader br) throws IOException {
-    BatchBodyPart block = new BatchBodyPart(httpHeaders, uriInfo);
-    final int SKIP_CONTENT_BEGIN = 2;
+    String cTypeXml  = "application/atom+xml";
+    String cTypeJson = "application/json";
 
+    BatchBodyPart block = new BatchBodyPart(httpHeaders, uriInfo);
+    final int SKIP_CONTENT_BEGIN = 0;
+
+    String cType = "";
     String line = "";
+    StringBuilder payload = new StringBuilder();
+
     while ((line = br.readLine()) != null) {
       if (line.equals("")) {
         continue;
       }
+
       if (line.startsWith("--")) {
+        if (cType.toLowerCase().startsWith(cTypeJson) && payload.length() > 0) {
+          int start = payload.indexOf("{");
+          int end   = payload.lastIndexOf("}");
+          if (start == -1 || end == -1)
+            throw new IllegalArgumentException("Can't parse payload.");
+
+          String entity = payload.substring(start, end + 1);
+          block.setEntity(entity);
+        } else if (cType.toLowerCase().startsWith(cTypeXml) && payload.length() > 0) {
+          int start = payload.indexOf("<");
+          int end   = payload.lastIndexOf(">");
+          if (start == -1 || end == -1)
+            throw new IllegalArgumentException("Can't parse payload.");
+
+          String entity = payload.substring(start, end + 1);
+          block.setEntity(entity);
+        }
         return validateBodyPart(block);
       }
 
@@ -141,14 +165,17 @@ public class ODataBatchProvider implements MessageBodyReader<List<BatchBodyPart>
             break;
           }
         }
-      } else {
+      } else if (line.indexOf(':') > -1
+                  && !line.trim().startsWith("{")
+                  && !line.trim().startsWith("<")) {
         Integer idx = line.indexOf(':');
         String key = line.substring(0, idx);
         String value = line.substring(idx + 1).trim();
         block.getHeaders().putSingle(key, value);
+        block.getHttpHeaders().getRequestHeaders().putSingle(key, value);
 
         if (key.toLowerCase().equals("content-length")) {
-          int capacity = Integer.parseInt(value) - SKIP_CONTENT_BEGIN;
+          int capacity = Integer.parseInt(value);// - SKIP_CONTENT_BEGIN;
           char[] buf = new char[capacity];
           int offset = 0;
 
@@ -160,11 +187,15 @@ public class ODataBatchProvider implements MessageBodyReader<List<BatchBodyPart>
 
           block.setEntity(new String(buf));
           return validateBodyPart(block);
+        } else if (key.toLowerCase().equals("content-type")) {
+          cType = value;
         }
+      } else {
+        payload.append(line);
       }
     }
 
-    throw new IllegalArgumentException("Cann't parse block");
+    throw new IllegalArgumentException("Can't parse block");
   }
 
   private static BatchBodyPart validateBodyPart(BatchBodyPart block) {

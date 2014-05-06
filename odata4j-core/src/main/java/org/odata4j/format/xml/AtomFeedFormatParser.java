@@ -24,6 +24,7 @@ import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.edm.EdmEntityType;
 import org.odata4j.edm.EdmFunctionImport;
 import org.odata4j.edm.EdmNavigationProperty;
+import org.odata4j.edm.EdmPropertyBase;
 import org.odata4j.edm.EdmProperty;
 import org.odata4j.edm.EdmSimpleType;
 import org.odata4j.edm.EdmStructuralType;
@@ -213,16 +214,35 @@ public class AtomFeedFormatParser extends XmlFormatParser implements FormatParse
           EdmProperty property = (EdmProperty) structuralType.findProperty(name);
           if (property != null)
             et = property.getType();
-          else
-            et = EdmSimpleType.STRING; // we must support open types
+          //else
+          //  et = EdmSimpleType.STRING;  // we must support open types
         }
 
         if (et != null && !et.isSimple()) {
           EdmStructuralType est = (EdmStructuralType) et;
           op = OProperties.complex(name, (EdmComplexType) et, isNull ? null : Enumerable.create(parseProperties(reader, event.asStartElement(), metadata, est)).toList());
-        } else {
+        } else if (et != null && (et.isSimple())) {
           op = OProperties.parseSimple(name, (EdmSimpleType<?>) et, isNull ? null : reader.getElementText());
+        } else {
+          //property arrived with no type, might be a complex type
+          EdmPropertyBase propBase = metadata.findEdmProperty(name);
+
+          if (propBase != null && propBase instanceof EdmProperty) {
+            EdmProperty prop = (EdmProperty) propBase;
+            EdmType  edmType = prop.getType();
+
+            if (!edmType.isSimple()) {
+              EdmStructuralType est = (EdmStructuralType) et;
+              op = OProperties.complex(name, (EdmComplexType) edmType, isNull ? null : Enumerable.create(parseProperties(reader, event.asStartElement(), metadata, est)).toList());
+            } else {
+              op = OProperties.parseSimple(name, (EdmSimpleType<?>) et, isNull ? null : reader.getElementText());
+            }
+          } else {
+            op = OProperties.parseSimple(name, (EdmSimpleType<?>) et, isNull ? null : reader.getElementText());
+            //throw new RuntimeException("could not determine type of property: " + name);
+          }
         }
+
         rt.add(op);
       }
     }

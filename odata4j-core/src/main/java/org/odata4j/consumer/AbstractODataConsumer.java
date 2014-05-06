@@ -2,6 +2,7 @@ package org.odata4j.consumer;
 
 import org.core4j.Enumerable;
 import org.odata4j.core.EntitySetInfo;
+import org.odata4j.core.OBatchRequest;
 import org.odata4j.core.OCountRequest;
 import org.odata4j.core.OCreateRequest;
 import org.odata4j.core.OEntity;
@@ -149,6 +150,10 @@ public abstract class AbstractODataConsumer implements ODataConsumer {
 
   public OCountRequest getEntitiesCount(String entitySetName) {
     return new ConsumerCountRequest(getClient(), getServiceRootUri()).entitySetName(entitySetName);
+  }
+
+  public OBatchRequest createBatchRequest() {
+    return new ConsumerBatchRequest(getClient(), getServiceRootUri(), getMetadata());
   }
 
   protected abstract ODataClient getClient();

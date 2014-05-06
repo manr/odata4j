@@ -81,7 +81,8 @@ public class InternalUtil {
         throw new IllegalArgumentException("Illegal datetime format " + value);
 
       if (seconds == null)
-        return DATETIME_XML.parseDateTime(dateTime).toLocalDateTime();
+        seconds = ":00";
+        //return DATETIME_XML.parseDateTime(dateTime).toLocalDateTime();
 
       if (nanoSeconds == null)
         return DATETIME_WITH_SECONDS_XML.parseDateTime(dateTime + seconds).toLocalDateTime();
@@ -174,10 +175,12 @@ public class InternalUtil {
 
     if (localDateTime.getMillisOfSecond() != 0)
       return localDateTime.toString(DATETIME_WITH_MILLIS_XML);
-    else if (localDateTime.getSecondOfMinute() != 0)
-      return localDateTime.toString(DATETIME_WITH_SECONDS_XML);
+    //else if (localDateTime.getSecondOfMinute() != 0)
+    //  return localDateTime.toString(DATETIME_WITH_SECONDS_XML);
+    //else
+    //  return localDateTime.toString(DATETIME_XML);
     else
-      return localDateTime.toString(DATETIME_XML);
+      return localDateTime.toString(DATETIME_WITH_SECONDS_XML);
   }
 
   public static String formatDateTimeOffsetForXml(DateTime dateTime) {

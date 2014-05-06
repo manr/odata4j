@@ -243,8 +243,13 @@ public class EdmxFormatWriter extends XmlFormatWriter {
           writer.startElement(new QName2("FunctionImport"));
           writer.writeAttribute("Name", fi.getName());
           if (fi.getReturnType() != null) {
+            String returnType = fi.getReturnType().getFullyQualifiedTypeName();
+
+            if (fi.isCollection())
+              returnType = "Collection(" + returnType + ")";
+
             // TODO: how to differentiate inline ReturnType vs embedded ReturnType?
-            writer.writeAttribute("ReturnType", fi.getReturnType().getFullyQualifiedTypeName());
+            writer.writeAttribute("ReturnType", returnType);
           }
           if (fi.getEntitySet() != null) {
             writer.writeAttribute("EntitySet", fi.getEntitySet().getName());

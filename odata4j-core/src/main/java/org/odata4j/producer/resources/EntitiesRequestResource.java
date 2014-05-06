@@ -46,7 +46,7 @@ import org.odata4j.producer.ODataProducer;
 import org.odata4j.producer.QueryInfo;
 
 // ignoreParens below is there to trim the parentheses from the entity set name when they are present - e.g. '/my.svc/Users()'.
-@Path("{entitySetName: [^/()]+?}{ignoreParens: (?:\\(\\))?}")
+@Path("{entitySetName: [^/()\\$]+?}{ignoreParens: (?:\\(\\))?}")
 public class EntitiesRequestResource extends BaseResource {
 
   private static final Logger log = Logger.getLogger(EntitiesRequestResource.class.getName());
@@ -444,17 +444,24 @@ public class EntitiesRequestResource extends BaseResource {
 
       switch (bodyPart.getHttpMethod()) {
       case POST:
-        response = this.createEntity(httpHeaders, uriInfo, securityContext, producer,
-            entitySetName,
-            getRequestEntity(httpHeaders, uriInfo, entityString, producer.getMetadata(), entitySetName, null), odataContext);
+          response = this.createEntity(httpHeaders, uriInfo, securityContext, producer,
+              entitySetName,
+              getRequestEntity(httpHeaders, MediaType.valueOf(bodyPart.getHeaders().getFirst(ODataConstants.Headers.CONTENT_TYPE)),
+                                uriInfo, entityString, producer.getMetadata(), entitySetName, null), odataContext);
         break;
       case PUT:
         response = er.updateEntity(httpHeaders, uriInfo, securityContext, providers,
             entitySetName, entityId, entityString, odataContext);
         break;
       case MERGE:
+        String tmpHttpMethod = httpHeaders.getRequestHeaders().getFirst(ODataConstants.Headers.X_HTTP_METHOD);
+        httpHeaders.getRequestHeaders().putSingle(ODataConstants.Headers.X_HTTP_METHOD, "MERGE");
         response = er.mergeEntity(httpHeaders, uriInfo, providers, securityContext, entitySetName,
             entityId, entityString);
+        if (tmpHttpMethod != null)
+          httpHeaders.getRequestHeaders().putSingle(ODataConstants.Headers.X_HTTP_METHOD, tmpHttpMethod);
+        else
+          httpHeaders.getRequestHeaders().remove(ODataConstants.Headers.X_HTTP_METHOD);
         break;
       case DELETE:
         response = er.deleteEntity(httpHeaders, uriInfo, providers, securityContext, format, callback, entitySetName, entityId);

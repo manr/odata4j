@@ -79,7 +79,7 @@ public class PropertyRequestResource extends BaseResource {
               .findNavigationProperty(navProp).getToRole().getType());
 
       // parse the request entity
-      OEntity entity = getRequestEntity(httpHeaders, uriInfo, payload, metadata, ees.getName(), OEntityKey.parse(id));
+      OEntity entity = getRequestEntity(httpHeaders, httpHeaders.getMediaType(), uriInfo, payload, metadata, ees.getName(), OEntityKey.parse(id));
 
       // execute the create
       EntityResponse response = producer.createEntity(ODataContextImpl.builder().aspect(httpHeaders).aspect(securityContext).build(),
@@ -125,6 +125,7 @@ public class PropertyRequestResource extends BaseResource {
   @Produces({
       ODataConstants.APPLICATION_ATOM_XML_CHARSET_UTF8,
       ODataConstants.TEXT_JAVASCRIPT_CHARSET_UTF8,
+      ODataConstants.TEXT_PLAIN_CHARSET_UTF8,
       ODataConstants.APPLICATION_JAVASCRIPT_CHARSET_UTF8 })
   public Response getNavProperty(
       @Context HttpHeaders httpHeaders,

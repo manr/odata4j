@@ -16,11 +16,11 @@ import org.odata4j.format.SingleLink;
  */
 public class ODataClientRequest {
 
-  private final String method;
-  private final String url;
-  private final Map<String, String> headers;
-  private final Map<String, String> queryParams;
-  private final Object payload;
+  protected final String method;
+  protected final String url;
+  protected final Map<String, String> headers;
+  protected final Map<String, String> queryParams;
+  protected final Object payload;
 
   public ODataClientRequest(String method, String url, Map<String, String> headers, Map<String, String> queryParams, Object payload) {
     this.method = method;

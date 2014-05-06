@@ -4,11 +4,7 @@ import java.util.Map;
 
 import org.core4j.Enumerable;
 import org.core4j.Func1;
-import org.odata4j.core.ImmutableList;
-import org.odata4j.core.OCollection;
-import org.odata4j.core.OComplexObject;
-import org.odata4j.core.OEntity;
-import org.odata4j.core.OObject;
+import org.odata4j.core.*;
 import org.odata4j.exceptions.NotImplementedException;
 
 /**
@@ -66,6 +62,8 @@ public abstract class EdmType extends EdmItem {
       return OCollection.class;
     } else if (edmType instanceof EdmEntityType) {
       return OEntity.class;
+    } else if (edmType instanceof EdmSimpleType) {
+      return OSimpleObject.class;
     } else {
       throw new NotImplementedException("Unable to determine instance type for edm type: " + edmType.getFullyQualifiedTypeName());
     }

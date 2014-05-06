@@ -12,7 +12,7 @@ import org.odata4j.exceptions.ODataProducerException;
  */
 public class ConsumerDeleteEntityRequest extends AbstractConsumerEntityRequest<Void> implements OEntityDeleteRequest {
 
-  private String ifMatch;
+  protected String ifMatch;
 
   public ConsumerDeleteEntityRequest(ODataClient client, String serviceRootUri,
       EdmDataServices metadata, String entitySetName, OEntityKey key, String ifMatch) {

@@ -31,7 +31,7 @@ public class Oneoff06_JsonCreateTest extends AbstractOneoffBaseTest {
     System.out.println(this.getResponseEntity());
     Assert.assertEquals(1, c.getEntities("Country").execute().count());
     Assert.assertEquals(201, this.getResponseStatus());
-    Assert.assertEquals("application/json;charset=" + Charsets.Lower.UTF_8, this.getResponseType());
+    Assert.assertEquals("application/json; charset=" + Charsets.Lower.UTF_8, this.getResponseType());
   }
 
   private String getResponseEntity() {

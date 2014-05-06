@@ -12,6 +12,7 @@ import org.odata4j.format.json.JsonErrorFormatWriter;
 import org.odata4j.format.json.JsonFeedFormatWriter;
 import org.odata4j.format.json.JsonPropertyFormatWriter;
 import org.odata4j.format.json.JsonRequestEntryFormatWriter;
+import org.odata4j.format.json.JsonRequestSingleLinkFormatWriter;
 import org.odata4j.format.json.JsonServiceDocumentFormatWriter;
 import org.odata4j.format.json.JsonSimpleFormatWriter;
 import org.odata4j.format.json.JsonSingleLinkFormatWriter;
@@ -50,6 +51,8 @@ public class FormatWriterFactory {
     FormatWriter<SimpleResponse> getSimpleFormatWriter();
 
     FormatWriter<Entry> getRequestEntryFormatWriter();
+
+    FormatWriter<SingleLink> getRequestSingleLinkFormatWriter();
 
     FormatWriter<SingleLink> getSingleLinkFormatWriter();
 
@@ -104,6 +107,9 @@ public class FormatWriterFactory {
 
     if (Entry.class.isAssignableFrom(targetType))
       return (FormatWriter<T>) formatWriters.getRequestEntryFormatWriter();
+
+    if (targetType.equals(SingleLinkRequest.class))
+      return (FormatWriter<T>) formatWriters.getRequestSingleLinkFormatWriter();
 
     if (SingleLink.class.isAssignableFrom(targetType))
       return (FormatWriter<T>) formatWriters.getSingleLinkFormatWriter();
@@ -168,6 +174,11 @@ public class FormatWriterFactory {
     }
 
     @Override
+    public FormatWriter<SingleLink> getRequestSingleLinkFormatWriter() {
+      return new JsonRequestSingleLinkFormatWriter(callback);
+    }
+
+    @Override
     public FormatWriter<SingleLink> getSingleLinkFormatWriter() {
       return new JsonSingleLinkFormatWriter(callback);
     }
@@ -218,6 +229,11 @@ public class FormatWriterFactory {
     @Override
     public FormatWriter<Entry> getRequestEntryFormatWriter() {
       return new AtomRequestEntryFormatWriter();
+    }
+
+    @Override
+    public FormatWriter<SingleLink> getRequestSingleLinkFormatWriter() {
+      return new AtomSingleLinkFormatWriter();
     }
 
     @Override
