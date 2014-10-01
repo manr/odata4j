@@ -133,6 +133,9 @@ public class OEntityKey {
 
     keyString = keyString.trim();
 
+    if (keyString.contains("/"))
+      keyString = keyString.substring(keyString.lastIndexOf('('), keyString.lastIndexOf(')') + 1);
+
     if (keyString.startsWith("(") && keyString.endsWith(")"))
       keyString = keyString.substring(1, keyString.length() - 1);
 

@@ -23,6 +23,8 @@ public class OEntityKeyTest {
     Assert.assertEquals(k("a"), OEntityKey.parse("(s='a')"));
     Assert.assertEquals(k("PartitionKey", "", "RowKey", "1"), OEntityKey.parse("(PartitionKey='',RowKey='1')"));
     Assert.assertEquals(k(new BigDecimal("43.9000")), OEntityKey.parse("(43.9000M)"));
+    Assert.assertEquals(k("K01"), OEntityKey.parse("Company('Test United Planet')/Kontaktkarte('K01')"));
+    Assert.assertEquals(k(1), OEntityKey.parse("Company('Test United Planet')/Kontaktkarte(1)"));
   }
 
   @Test
