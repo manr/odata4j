@@ -6,7 +6,16 @@ import org.odata4j.consumer.AbstractODataConsumer;
 import org.odata4j.consumer.ODataClient;
 import org.odata4j.consumer.ODataConsumer;
 import org.odata4j.consumer.behaviors.OClientBehavior;
+import org.odata4j.core.ODataConstants;
+import org.odata4j.core.Throwables;
+import org.odata4j.edm.EdmDataServices;
 import org.odata4j.format.FormatType;
+import org.odata4j.format.xml.EdmxFormatParser;
+import org.odata4j.internal.BOMWorkaroundReader;
+import org.odata4j.stax2.XMLEventReader2;
+import org.odata4j.stax2.util.StaxUtil;
+
+import java.io.*;
 
 /**
  * OData consumer based on Jersey.
@@ -17,6 +26,16 @@ public class ODataJerseyConsumer extends AbstractODataConsumer {
 
   private ODataJerseyConsumer(FormatType type, String serviceRootUri, JerseyClientFactory clientFactory, OClientBehavior... behaviors) {
     super(serviceRootUri);
+
+    // ensure that a correct JAX-RS implementation (Jersey, server or default) is loaded
+    if (!(RuntimeDelegate.getInstance() instanceof com.sun.jersey.core.spi.factory.AbstractRuntimeDelegate))
+      RuntimeDelegate.setInstance(new com.sun.ws.rs.ext.RuntimeDelegateImpl());
+
+    this.client = new ODataJerseyClient(type, clientFactory, behaviors);
+  }
+
+  private ODataJerseyConsumer(FormatType type, String serviceRootUri, JerseyClientFactory clientFactory, EdmDataServices metadata, OClientBehavior... behaviors) {
+    super(serviceRootUri, metadata);
 
     // ensure that a correct JAX-RS implementation (Jersey, server or default) is loaded
     if (!(RuntimeDelegate.getInstance() instanceof com.sun.jersey.core.spi.factory.AbstractRuntimeDelegate))
@@ -39,6 +58,7 @@ public class ODataJerseyConsumer extends AbstractODataConsumer {
     private String serviceRootUri;
     private JerseyClientFactory clientFactory;
     private OClientBehavior[] clientBehaviors;
+    private EdmDataServices   dataServices;
 
     private Builder(String serviceRootUri) {
       this.serviceRootUri = serviceRootUri;
@@ -81,16 +101,42 @@ public class ODataJerseyConsumer extends AbstractODataConsumer {
       return this;
     }
 
+    public Builder setMetadata(EdmDataServices dataServices) {
+      this.dataServices = dataServices;
+      return this;
+    }
+
+    public Builder setMetadata(File edmxFile) {
+      EdmDataServices edmDataServices = new EdmxFormatParser().parseMetadata(toXml(edmxFile));
+      this.dataServices = edmDataServices;
+      return this;
+    }
+
     /**
      * Builds the {@link ODataJerseyConsumer} object.
      *
      * @return a new OData consumer
      */
     public ODataJerseyConsumer build() {
-      if (this.clientBehaviors != null)
-        return new ODataJerseyConsumer(this.formatType, this.serviceRootUri, this.clientFactory, this.clientBehaviors);
-      else
-        return new ODataJerseyConsumer(this.formatType, this.serviceRootUri, this.clientFactory);
+      if (this.dataServices == null) {
+        if (this.clientBehaviors != null)
+          return new ODataJerseyConsumer(this.formatType, this.serviceRootUri, this.clientFactory, this.clientBehaviors);
+        else
+          return new ODataJerseyConsumer(this.formatType, this.serviceRootUri, this.clientFactory);
+      } else {
+        if (this.clientBehaviors != null)
+          return new ODataJerseyConsumer(this.formatType, this.serviceRootUri, this.clientFactory, this.dataServices, this.clientBehaviors);
+        else
+          return new ODataJerseyConsumer(this.formatType, this.serviceRootUri, this.clientFactory, this.dataServices);
+      }
+    }
+
+    private XMLEventReader2 toXml(File metadata) {
+      try {
+        return StaxUtil.newXMLEventReader(new BOMWorkaroundReader(new InputStreamReader(new FileInputStream(metadata), ODataConstants.Charsets.Upper.UTF_8)));
+      } catch (Exception e) {
+        throw Throwables.propagate(e);
+      }
     }
   }
 

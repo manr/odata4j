@@ -37,6 +37,14 @@ public abstract class AbstractODataConsumer implements ODataConsumer {
     this.serviceRootUri = serviceRootUri;
   }
 
+  protected AbstractODataConsumer(String serviceRootUri, EdmDataServices metadata) {
+    if (!serviceRootUri.endsWith("/"))
+      serviceRootUri = serviceRootUri + "/";
+
+    this.serviceRootUri = serviceRootUri;
+    this.cachedMetadata = metadata;
+  }
+
   public String getServiceRootUri() {
     return serviceRootUri;
   }
