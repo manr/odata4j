@@ -10,4 +10,6 @@ public interface Feed {
   String getNext();
 
   Iterable<Entry> getEntries();
+
+  Integer getInlineCount();
 }

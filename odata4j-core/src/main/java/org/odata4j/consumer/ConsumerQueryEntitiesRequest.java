@@ -25,10 +25,12 @@ import org.odata4j.internal.InternalUtil;
 public class ConsumerQueryEntitiesRequest<T> extends AbstractConsumerQueryRequestBase<T> {
 
   private final Class<T> entityType;
+  private Integer inlineCount;
 
   public ConsumerQueryEntitiesRequest(ODataClient client, Class<T> entityType, String serviceRootUri, EdmDataServices metadata, String entitySetName) {
     super(client, serviceRootUri, metadata, entitySetName);
     this.entityType = entityType;
+    this.inlineCount = null;
   }
 
   @Override
@@ -43,8 +45,16 @@ public class ConsumerQueryEntitiesRequest<T> extends AbstractConsumerQueryReques
     }).cast(entityType);
   }
 
+  public Integer getInlineCount() {
+    return inlineCount;
+  }
+
   private Enumerable<Entry> getEntries(final ODataClientRequest request) throws ODataProducerException {
     final Feed feed = doRequest(request);
+
+    if (feed.getInlineCount() != null)
+      inlineCount = feed.getInlineCount();
+
     return Enumerable.createFromIterator(new Func<Iterator<Entry>>() {
       public Iterator<Entry> apply() {
         return new EntryIterator(request, feed);

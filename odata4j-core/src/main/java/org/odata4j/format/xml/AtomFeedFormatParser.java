@@ -59,10 +59,16 @@ public class AtomFeedFormatParser extends XmlFormatParser implements FormatParse
   public static class AtomFeed implements Feed {
     public String next;
     public Iterable<Entry> entries;
+    public Integer inlineCount;
 
     @Override
     public Iterable<Entry> getEntries() {
       return entries;
+    }
+
+    @Override
+    public Integer getInlineCount() {
+      return inlineCount;
     }
 
     @Override
@@ -171,7 +177,14 @@ public class AtomFeedFormatParser extends XmlFormatParser implements FormatParse
         if ("next".equals(event.asStartElement().getAttributeByName(new QName2("rel")).getValue())) {
           feed.next = event.asStartElement().getAttributeByName(new QName2("href")).getValue();
         }
-      } else if (isEndElement(event, ATOM_FEED)) {
+      } else if (isStartElement(event, M_COUNT)) {
+        try {
+          feed.inlineCount = Integer.parseInt(reader.getElementText());
+        } catch (Exception e) {
+          feed.inlineCount = null;
+        }
+      }
+      else if (isEndElement(event, ATOM_FEED)) {
         // return from a sub feed, if we went down the hierarchy
         break;
       }

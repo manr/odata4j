@@ -37,6 +37,10 @@ public class JsonFeedFormatParser extends JsonFormatParser implements FormatPars
       return entries;
     }
 
+    @Override
+    public Integer getInlineCount() {
+      return inlineCount;
+    }
   }
 
   static class JsonEntry implements Entry {
